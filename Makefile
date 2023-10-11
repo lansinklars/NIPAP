@@ -85,3 +85,30 @@ bumpversion:
 	for PROJ in $(SUBPROJ); do \
 		cd $$PROJ; make bumpversion; cd ..; \
 	done
+
+docker-nipapd:
+	docker buildx build -t nipapd -f Dockerfile.nipapd --load .
+
+docker-www:
+	docker buildx build -t nipap-www -f Dockerfile.www --load .
+
+
+nipap-startd:
+	@echo "== Starting nipapd"
+	@docker run -d --name nipapd  \
+    -e DB_HOST=nipapdb \
+    -e DB_USERNAME=nipap\
+    -e DB_PASSWORD=db_password\
+    -e DB_NAME=nipap\
+    -e NIPAP_USERNAME=www\
+    -e NIPAP_PASSWORD=nipap_password\
+		nipapd
+
+nipap-startdb:
+	@echo "== Starting nipap database"
+	@docker run -d --name nipapdb \
+    -e PGDATA=/var/lib/postgres/data/pgdata\
+    -e POSTGRES_USER=nipap\
+    -e POSTGRES_PASSWORD=db_password\
+    -e POSTGRES_DB=nipap\
+   nipap/postgres-ip4r 

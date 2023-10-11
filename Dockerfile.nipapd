@@ -32,7 +32,7 @@
 # via a volume.
 #
 
-FROM ubuntu:bionic
+FROM debian:bookworm
 MAINTAINER Kristian Larsson <kristian@spritelink.net>
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,24 +49,25 @@ RUN apt-get update -qy && apt-get upgrade -qy \
     python3-all \
     python3-pip \
     python3-dev \
+    python3-jinja2 \
+    python3-psycopg2 \
     libsasl2-dev \
     libldap2-dev \
     libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Install any additional CA certs from ca_certs folder required by corp proxies etc
-RUN mkdir -p /usr/share/ca-certificates/extra
-COPY ca_certs/*.crt /usr/share/ca-certificates/extra/
-RUN ls /usr/share/ca-certificates/extra/*.crt | sed 's/\/usr\/share\/ca-certificates\///g' >> /etc/ca-certificates.conf
+RUN mkdir -p /usr/local/share/ca-certificates
+COPY ca_certs/* /usr/local/share/ca-certificates/
 RUN update-ca-certificates
-RUN pip3 install --upgrade pip
+RUN pip3 install --break-system-packages --upgrade pip
 RUN pip3 config set global.cert /etc/ssl/certs/ca-certificates.crt
 
 
 COPY nipap /nipap
 WORKDIR /nipap
-RUN pip3 install --no-input envtpl
-RUN pip3 --no-input install -r requirements.txt \
+RUN pip3 install --break-system-packages --no-input envtpl
+RUN pip3 --no-input install --break-system-packages -r requirements.txt \
  && python3 setup.py install
 
 EXPOSE 1337
